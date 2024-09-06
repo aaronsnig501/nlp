@@ -14,4 +14,4 @@ async def hello(request):
 
 
 if __name__ == "__main__":
-    app.run(host=config.server.host, port=config.server.port)
+    app.run(host=config.server["host"], port=config.server["port"])
