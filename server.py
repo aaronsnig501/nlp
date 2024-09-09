@@ -1,8 +1,8 @@
 from sanic import Sanic
 from sanic.response import json
 
-from config.loader import load_config
-from config.entities import Config
+from application.config.loader import load_config
+from application.config.entities import Config
 
 app = Sanic("nlp")
 config: Config = load_config()
@@ -14,4 +14,4 @@ async def hello(request):
 
 
 if __name__ == "__main__":
-    app.run(host=config.server["host"], port=config.server["port"])
+    app.run(host=config.server.host, port=config.server.port)
