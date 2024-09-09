@@ -1,0 +1,5 @@
+FROM sanicframework/sanic:3.8-latest
+WORKDIR /sanic
+COPY . .
+RUN pip install -r dev-requirements.txt
+CMD ["pytest"]
