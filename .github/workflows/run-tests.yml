@@ -1,4 +1,4 @@
-name: Build and Publish image to Docker Hub
+name: Execute unit tests
 on:
   push:
     branches:
@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Run docker-compose
+      - name: Execute unit tests with docker-compose
         uses: hoverkraft-tech/compose-action@v2.0.1
         with:
           compose-file: "./docker-compose.yml"
