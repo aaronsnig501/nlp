@@ -3,8 +3,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - Dockerfile.unittest
 
 jobs:
   publish_images:
@@ -13,8 +11,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build image
-        run: docker build ./ -t snig501/nlp-unittest:latest --file Dockerfile.unittest
-      - name: Push image to Dockerhub
-        run: |
-          docker login -u snig501 -p ${{ secrets.DOCKER_HUB_TOKEN }}
-          docker push snig501/nlp-unittest:latest
+        run: docker-compose build
+      - name: Run tests
+        run: docker-compose tun test
