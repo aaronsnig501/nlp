@@ -15,4 +15,4 @@ jobs:
         with:
           compose-file: "./docker-compose.yml"
       - name: Run tests
-        run: docker-compose tun test
+        run: docker-compose run test
