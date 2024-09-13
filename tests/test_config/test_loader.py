@@ -11,4 +11,3 @@ def test_load_config(mocker: Any):
     assert load_config() == Config(
         server=ServerConfig(host="0.0.0.0", port=8000)
     )
-    assert 1 == 2
