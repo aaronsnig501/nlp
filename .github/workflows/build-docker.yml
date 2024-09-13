@@ -3,8 +3,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - Dockerfile.unittest
 
 jobs:
   publish_images:
