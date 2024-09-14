@@ -30,8 +30,10 @@ jobs:
           pip install -r requirements/dev.txt
       - name: Execute Ruff
         run: |
-          ruff check .
-          ruff fix .
+          ruff check
+          ruff fix
+          ruff format
+          ruff fix
       - name: Commit fixes
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
