@@ -3,6 +3,6 @@ from .entities import Config, ServerConfig
 
 
 def load_config():
-    conf = load("./application/config/application.toml")
+    conf = load("./config/application.toml")
     server_conf: ServerConfig = ServerConfig(**conf["server"])
     return Config(server=server_conf)

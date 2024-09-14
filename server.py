@@ -1,7 +1,7 @@
 from sanic import Sanic
 
-from application.config.loader import load_config
-from application.config.entities import Config
+from config.loader import load_config
+from config.entities import Config
 
 from application.ping.controllers import bp as ping_blueprint
 from application.ping.manager import PingManager
