@@ -1,4 +1,4 @@
-name: Execute unit tests
+name: Execute CI actions
 on: [pull_request]
 
 jobs:
