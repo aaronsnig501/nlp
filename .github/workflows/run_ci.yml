@@ -1,0 +1,47 @@
+name: Execute unit tests
+on: [pull_request]
+
+jobs:
+  isort:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Run isort
+        uses: olance/isort-action@v1.0.0
+        with:
+          args: .
+      - name: Commit fixes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: 'style fixes by isort'
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Ruff
+        uses: chartboost/ruff-action@v1
+        with:
+          args: --check --fix .
+      - name: Commit fixes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: 'style fixes by ruff'
+  execute_unit_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Python 3
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/dev.txt
+      - name: Run tests with pytest
+        run: pytest
+  
+
