@@ -20,10 +20,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Use Ruff
-        uses: chartboost/ruff-action@v1
+      - name: Install Python 3
+        uses: actions/setup-python@v5
         with:
-          args: --check --fix .
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/dev.txt
+      - name: Execute Ruff
+        run: |
+          ruff check .
+          ruff fix .
       - name: Commit fixes
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
