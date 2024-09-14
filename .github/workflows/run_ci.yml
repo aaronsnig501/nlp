@@ -11,10 +11,6 @@ jobs:
         uses: olance/isort-action@v1.0.0
         with:
           args: .
-      - name: Commit fixes
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: 'style fixes by isort'
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -29,13 +25,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements/dev.txt
       - name: Execute Ruff
-        run: |
-          ruff check .
-          ruff --fix .
-      - name: Commit fixes
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: 'style fixes by ruff'
+        run: ruff check --output-format=github .
   execute_unit_tests:
     runs-on: ubuntu-latest
     steps:
