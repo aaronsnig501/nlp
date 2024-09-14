@@ -1,7 +1,8 @@
 from dataclasses import asdict
 
-from sanic.response import json
 from sanic import Blueprint
+from sanic.response import json
+from sanic_ext import openapi
 
 from .entities import HealthStatusResponse
 from .manager import PingManager
@@ -10,6 +11,8 @@ bp = Blueprint("ping", url_prefix="/api")
 
 
 @bp.get("/ping")
+@openapi.summary("Perform health check")
+@openapi.response(200, {"application/json": HealthStatusResponse})
 async def ping(request, ping_manager: PingManager) -> dict[str, bool]:
     """Ping
 
