@@ -38,7 +38,3 @@ async def callback_request(request: SanicRequest) -> None:
 @app.middleware("response")
 async def callback_response(request: SanicRequest, response: SanicResponse) -> None:
     logger.info(f"Request {request.path} processing finished")
-
-
-if __name__ == "__main__":
-    app.run(host=config.server.host, port=config.server.port)
