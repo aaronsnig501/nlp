@@ -2,7 +2,6 @@ from sanic import Sanic
 from sanic.log import logger, LOGGING_CONFIG_DEFAULTS
 from sanic.request import Request as SanicRequest
 from sanic.response import BaseHTTPResponse as SanicResponse
-from uvicorn import run
 
 from config.loader import load_config
 from config.entities import Config
