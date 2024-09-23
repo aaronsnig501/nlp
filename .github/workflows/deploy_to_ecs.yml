@@ -21,7 +21,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: snig501/nlp:latest
+          tags: snig501/nlp-sanic:latest
   deploy:
     needs: build_image
     name: Deploy
@@ -43,7 +43,7 @@ jobs:
         with:
           task-definition-arn: arn:aws:ecs:eu-west-1:414558061702:task-definition/nlp-sanic-test-td:1
           container-name: nlp-test-container
-          image: snig501/nlp:latest
+          image: snig501/nlp-sanic:latest
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
