@@ -39,9 +39,9 @@ jobs:
 
       - name: Render new task definition
         id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@c804dfbdd57f713b6c079302a4c01db7017a36fc
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: nlp-sanic-test-td
+          task-definition: arn:aws:ecs:eu-west-1:414558061702:task-definition/nlp-sanic-test-td:1
           container-name: nlp-test-container
           image: snig501/nlp:latest
 
