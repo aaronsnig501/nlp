@@ -3,13 +3,9 @@ from sanic.log import logger, LOGGING_CONFIG_DEFAULTS
 from sanic.request import Request as SanicRequest
 from sanic.response import BaseHTTPResponse as SanicResponse
 
-from config.loader import load_config
-from config.entities import Config
-
 from application.ping.controllers import bp as ping_blueprint
 from application.ping.manager import PingManager
 
-config: Config = load_config()
 
 LOGGING_CONFIG_DEFAULTS["formatters"] = {
     "generic": {
