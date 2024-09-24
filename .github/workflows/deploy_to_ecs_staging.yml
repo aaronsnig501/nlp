@@ -1,8 +1,9 @@
 name: Push images to dockerhub and deploy to ecs
 on: 
-  push:
+  pull_request:
     branches:
-      - staging
+        - staging
+    types: [closed]
 
 jobs:
   build_image:
