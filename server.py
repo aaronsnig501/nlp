@@ -16,7 +16,10 @@ LOGGING_CONFIG_DEFAULTS["formatters"] = {
     }
 }
 
+
 app = Sanic("nlp")
+
+app.config.FALLBACK_ERROR_FORMAT = "json"
 
 app.blueprint(ping_blueprint)
 app.ext.add_dependency(PingManager)
