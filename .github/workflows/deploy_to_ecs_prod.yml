@@ -1,5 +1,5 @@
 name: Push images to dockerhub and deploy to ecs
-on: 
+on:
   push:
     branches:
       - main
@@ -41,7 +41,7 @@ jobs:
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition-arn: arn:aws:ecs:eu-west-1:414558061702:task-definition/nlp-prod-td:1
+          task-definition-arn: arn:aws:ecs:eu-west-1:414558061702:task-definition/nlp-prod-td:5
           container-name: nlp-prod
           image: snig501/nlp-prod:latest
 
