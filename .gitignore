@@ -1,4 +1,5 @@
 application.toml
+.env
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
