@@ -8,5 +8,12 @@ class ServerConfig:
 
 
 @dataclass
+class AWSConfig:
+    aws_access_key: str
+    aws_secret_key: str
+
+
+@dataclass
 class Config:
     server: ServerConfig
+    aws: AWSConfig
