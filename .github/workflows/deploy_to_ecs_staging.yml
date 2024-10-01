@@ -42,7 +42,7 @@ jobs:
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition-arn: arn:aws:ecs:eu-west-1:414558061702:task-definition/nlp-staging-td:5
+          task-definition-arn: arn:aws:ecs:eu-west-1:414558061702:task-definition/nlp-staging-td:9
           container-name: nlp-staging
           image: snig501/nlp-staging:latest
 
