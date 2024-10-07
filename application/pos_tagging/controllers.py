@@ -11,10 +11,10 @@ from .managers import PoSTaggingManager
 from .validators import PoSTaggingRequestBody
 from application.shared.clients.aws.client import SyntaxToken
 
-bp = Blueprint("pos_tagging", url_prefix="/api")
+bp = Blueprint("pos_tagging", url_prefix="/api/pos")
 
 
-@bp.post("/pos-tagging")
+@bp.post("/tagging")
 @validate(json=PoSTaggingRequestBody)
 @openapi.summary("Perform PoS Tagging")
 @openapi.body({"application/json": PoSTaggingRequestBody})
@@ -39,7 +39,7 @@ async def pos_tagging(
         curl --header "Content-Type: application/json" \                                                                                                                                         ─╯
             --request POST \
             --data '{"text": "hello", "language": "en", "processor": "aws"}' \
-            http://localhost:8000/api/pos-tagging | jq
+            http://localhost:8000/api/pos/tagging | jq
         ```
 
     Example Response:
