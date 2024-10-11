@@ -1,3 +1,4 @@
+from application.pos_tagging.cache import PoSPubSub
 from application.shared.clients.aws.client import AWSComprehendClient
 from application.shared.clients.aws.entities import SyntaxToken
 from application.shared.clients.protocol import NlpClientProtocol
@@ -11,16 +12,23 @@ class PoSTaggingManager:
     """
 
     _clients: dict[str, NlpClientProtocol]
+    _pubsub: PoSPubSub
 
-    def __init__(self, aws_client: AWSComprehendClient) -> None:
+    def __init__(self, aws_client: AWSComprehendClient, pubsub: PoSPubSub) -> None:
         self._clients = {
             "aws": aws_client
         }
+        self._pubsub = pubsub
 
-    def process_pos_tagging(
-        self, text: str, language_code: str, processor: str
+    async def process_pos_tagging(
+        self,
+        text: str,
+        language_code: str,
+        processor: str,
     ) -> list[SyntaxToken]:
         """Process PoS Tagging
+
+        Process the text and also publish update messages to pubsub channel
 
         Args:
             text (str): The text to be processed
@@ -30,5 +38,10 @@ class PoSTaggingManager:
         Returns:
             list[SyntaxToken]: The syntax breakdown of the provided text
         """
+        await self._pubsub.publish_request_received_message()
         client = self._clients[processor]
-        return client.detect_syntax(text, language_code)
+        syntax_tokens: list[SyntaxToken] = client.detect_syntax(text, language_code)
+        await self._pubsub.publish_request_processed_message(
+            syntax_tokens=syntax_tokens
+        )
+        return syntax_tokens

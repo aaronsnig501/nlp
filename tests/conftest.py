@@ -1,10 +1,18 @@
+from asyncio import get_event_loop
 from typing import Any
-from application.shared.clients.aws.client import AWSComprehendClient
-from pytest import fixture
 
 from boto3 import client
 from botocore.client import BaseClient
+from pytest import fixture
+
 from application.shared.clients.aws.entities import SyntaxToken
+from application.shared.clients.aws.client import AWSComprehendClient
+
+
+
+@fixture(scope="session")
+def event_loop():
+    return get_event_loop()
 
 
 @fixture

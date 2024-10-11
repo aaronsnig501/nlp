@@ -11,21 +11,20 @@ from .managers import PoSTaggingManager
 from .validators import PoSTaggingRequestBody
 from application.shared.clients.aws.client import SyntaxToken
 
-bp = Blueprint("pos_tagging", url_prefix="/api")
+bp = Blueprint("pos_tagging", url_prefix="/api/pos")
 
 
-@bp.post("/pos-tagging")
+@bp.post("/tagging")
 @validate(json=PoSTaggingRequestBody)
 @openapi.summary("Perform PoS Tagging")
 @openapi.body({"application/json": PoSTaggingRequestBody})
-@openapi.parameter()
 @openapi.response(
     200,
     {"application/json": list[SyntaxToken]},
     "The syntactical breakdown of the provided text"
 )
 async def pos_tagging(
-    _: SanicRequest,
+    request: SanicRequest,
     body: PoSTaggingRequestBody,
     tagging_manager: PoSTaggingManager,
 ) -> SanicResponse:
@@ -36,10 +35,10 @@ async def pos_tagging(
 
     Example Usage:
         ```sh
-        curl --header "Content-Type: application/json" \                                                                                                                                         ─╯
+        curl --header "Content-Type: application/json" \
             --request POST \
             --data '{"text": "hello", "language": "en", "processor": "aws"}' \
-            http://localhost:8000/api/pos-tagging | jq
+            http://localhost:8000/api/pos/tagging | jq
         ```
 
     Example Response:
@@ -58,8 +57,10 @@ async def pos_tagging(
         ]
         ```
     """
-    syntax_tokens: list[SyntaxToken] = tagging_manager.process_pos_tagging(
-        text=body.text, language_code=body.language, processor=body.processor
+    syntax_tokens: list[SyntaxToken] = await tagging_manager.process_pos_tagging(
+        text=body.text,
+        language_code=body.language,
+        processor=body.processor,
     )
 
     syntax_tokens_as_dict: list[dict[str, Any]] = [

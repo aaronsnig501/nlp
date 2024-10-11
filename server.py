@@ -1,4 +1,7 @@
+from dataclasses import asdict
+
 from boto3 import client
+from redis.asyncio import Redis as RedisPy
 
 from sanic import Sanic
 from sanic.log import logger, LOGGING_CONFIG_DEFAULTS
@@ -10,8 +13,10 @@ from application.ping.manager import PingManager
 
 from application.pos_tagging.controllers import bp as pos_tagging_blueprint
 from application.pos_tagging.managers import PoSTaggingManager
+from application.pos_tagging.cache import PoSPubSub
 
 from application.shared.clients.aws.client import AWSComprehendClient
+from application.shared.redis import Redis
 from config.loader import load_config
 
 LOGGING_CONFIG_DEFAULTS["formatters"] = {
@@ -24,13 +29,17 @@ LOGGING_CONFIG_DEFAULTS["formatters"] = {
 }
 
 app = Sanic("nlp")
+config = load_config()
+app.config.update(asdict(config))
+
+redis_connection = RedisPy.from_url(app.config["redis"]["uri"])
+
+redis = Redis(redis_connection, app.config["redis"]["channel"])
 
 app.config.FALLBACK_ERROR_FORMAT = "json"
 
-config = load_config()
-
 app.blueprint(ping_blueprint)
-app.ext.add_dependency(PingManager)
+app.ext.dependency(PingManager(redis))
 
 app.blueprint(pos_tagging_blueprint)
 aws_client = AWSComprehendClient(
@@ -41,7 +50,8 @@ aws_client = AWSComprehendClient(
         aws_secret_access_key=config.aws.aws_secret_key
     )
 )
-tagging_manager = PoSTaggingManager(aws_client=aws_client)
+pos_pubsub = PoSPubSub(redis)
+tagging_manager = PoSTaggingManager(aws_client=aws_client, pubsub=pos_pubsub)
 app.ext.dependency(aws_client)
 app.ext.dependency(tagging_manager, "tagging_manager")
 
@@ -49,6 +59,12 @@ app.ext.openapi.describe(
     "Natural Language Processing API",
     version="0.1"
 )
+
+
+@app.listener("before_server_start")
+async def redis_setup(app, loop):
+    app.ctx.redis = redis
+
 
 @app.middleware("request")
 async def callback_request(request: SanicRequest) -> None:

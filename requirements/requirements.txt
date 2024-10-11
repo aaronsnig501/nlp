@@ -1,3 +1,5 @@
 boto3==1.35.26
 sanic==24.6.0
 sanic-ext==23.12.0
+redis==5.1.1
+orjson==3.10.7
