@@ -14,6 +14,13 @@ class AWSConfig:
 
 
 @dataclass
+class RedisConfig:
+    uri: str
+    channel: str
+
+
+@dataclass
 class Config:
     server: ServerConfig
     aws: AWSConfig
+    redis: RedisConfig
