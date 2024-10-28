@@ -14,12 +14,13 @@ class TestCache:
         mock_redis = create_autospec(Redis)
         pubsub = PoSPubSub(mock_redis)
 
-        await pubsub.publish_request_received_message()
+        await pubsub.publish_request_received_message("123")
 
         mock_redis.publish_message.assert_awaited_with(
             {
                 "message_type": MessageTypes.REQUEST_RECEIVED.value
-            }
+            },
+            "123"
         )
 
     @mark.asyncio
@@ -29,7 +30,9 @@ class TestCache:
         mock_redis = create_autospec(Redis)
         pubsub = PoSPubSub(mock_redis)
 
-        await pubsub.publish_request_processed_message(detect_syntax_return_value)
+        await pubsub.publish_request_processed_message(
+            detect_syntax_return_value, "123"
+        )
 
         mock_redis.publish_message.assert_awaited_with(
             {
@@ -46,5 +49,6 @@ class TestCache:
                         }
                     }
                 ]
-            }
+            },
+            "123"
         )

@@ -15,9 +15,9 @@ class TestRedis:
         )
         redis = Redis(mock_redis_connection, "nlp")
 
-        await redis.publish_message({"message_type": "test"})
+        await redis.publish_message({"message_type": "test"}, "123")
         mock_redis_connection.publish.assert_awaited_with(
-            "nlp", dumps({"message_type": "test"})
+            "nlp-123", dumps({"message_type": "test"})
         )
 
     @mark.asyncio

@@ -25,6 +25,7 @@ class PoSTaggingManager:
         text: str,
         language_code: str,
         processor: str,
+        client_id: str
     ) -> list[SyntaxToken]:
         """Process PoS Tagging
 
@@ -38,10 +39,10 @@ class PoSTaggingManager:
         Returns:
             list[SyntaxToken]: The syntax breakdown of the provided text
         """
-        await self._pubsub.publish_request_received_message()
+        await self._pubsub.publish_request_received_message(client_id)
         client = self._clients[processor]
         syntax_tokens: list[SyntaxToken] = client.detect_syntax(text, language_code)
         await self._pubsub.publish_request_processed_message(
-            syntax_tokens=syntax_tokens
+            syntax_tokens=syntax_tokens, client_id=client_id
         )
         return syntax_tokens
