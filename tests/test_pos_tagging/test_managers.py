@@ -24,7 +24,7 @@ class TestPoSTaggingManager:
         pubsub_mock = create_autospec(PoSPubSub)
         manager = PoSTaggingManager(comprehend_client, pubsub_mock)
         assert (
-            await manager.process_pos_tagging("hi", "en", "aws")
+            await manager.process_pos_tagging("hi", "en", "aws", "123")
             == detect_syntax_return_value
         )
         aws_comprehend_mock.assert_called_with("hi", "en")

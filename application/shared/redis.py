@@ -14,13 +14,13 @@ class Redis:
         self._connection = connection
         self._channel = channel
 
-    async def publish_message(self, message: dict[str, Any]) -> None:
+    async def publish_message(self, message: dict[str, Any], client_id: str) -> None:
         """Publish message
 
         Args:
             message (dict[str, Any]): The data structure to publish
         """
-        await self._connection.publish(self._channel, dumps(message))
+        await self._connection.publish(f"{self._channel}-{client_id}", dumps(message))
 
     async def health_check(self) -> bool:
         """Perform redis health check
