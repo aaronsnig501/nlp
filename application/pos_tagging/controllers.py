@@ -61,6 +61,7 @@ async def pos_tagging(
         text=body.text,
         language_code=body.language,
         processor=body.processor,
+        client_id=body.client_id
     )
 
     syntax_tokens_as_dict: list[dict[str, Any]] = [

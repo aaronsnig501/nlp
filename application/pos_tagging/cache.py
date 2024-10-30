@@ -11,16 +11,17 @@ class PoSPubSub:
     def __init__(self, redis: Redis) -> None:
         self._redis = redis
 
-    async def publish_request_received_message(self) -> None:
+    async def publish_request_received_message(self, client_id: str) -> None:
         """Publish the `REQUEST_RECEIVED` message"""
         await self._redis.publish_message(
             {
                 "message_type": MessageTypes.REQUEST_RECEIVED.value
-            }
+            },
+            client_id
         )
 
     async def publish_request_processed_message(
-        self, syntax_tokens: list[SyntaxToken]
+        self, syntax_tokens: list[SyntaxToken], client_id: str
     ) -> None:
         """Publish request processed message
 
@@ -33,5 +34,6 @@ class PoSPubSub:
             {
                 "message_type": MessageTypes.REQUEST_PROCESSED.value,
                 "syntax_tokens": [asdict(syntax_token) for syntax_token in syntax_tokens]
-            }
+            },
+            client_id=client_id
         )

@@ -2,7 +2,6 @@ from dataclasses import asdict
 
 from boto3 import client
 from redis.asyncio import Redis as RedisPy
-
 from sanic import Sanic
 from sanic.log import logger, LOGGING_CONFIG_DEFAULTS
 from sanic.request import Request as SanicRequest
