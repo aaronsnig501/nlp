@@ -1,7 +1,11 @@
-from application.pos_tagging.cache import PoSPubSub
+from dataclasses import asdict
+from typing import Any
+from .cache import PoSPubSub
+from .models import PartOfSpeechTags
 from application.shared.clients.aws.client import AWSComprehendClient
 from application.shared.clients.aws.entities import SyntaxToken
 from application.shared.clients.protocol import NlpClientProtocol
+
 
 
 class PoSTaggingManager:
@@ -19,6 +23,20 @@ class PoSTaggingManager:
             "aws": aws_client
         }
         self._pubsub = pubsub
+
+    async def _insert_into_db(
+        self,
+        language_code: str,
+        processor: str,
+        syntax_tokens: list[dict[str, Any]]
+    ) -> None:
+        await PartOfSpeechTags.insert_one(
+            {
+                "language_code": language_code,
+                "processor": processor,
+                "syntax_tokens": syntax_tokens
+            }
+        )
 
     async def process_pos_tagging(
         self,
@@ -41,6 +59,11 @@ class PoSTaggingManager:
         await self._pubsub.publish_request_received_message()
         client = self._clients[processor]
         syntax_tokens: list[SyntaxToken] = client.detect_syntax(text, language_code)
+        await self._insert_into_db(
+            language_code,
+            processor,
+            [asdict(syntax_token) for syntax_token in syntax_tokens]
+        )
         await self._pubsub.publish_request_processed_message(
             syntax_tokens=syntax_tokens
         )

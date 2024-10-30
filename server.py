@@ -31,6 +31,7 @@ LOGGING_CONFIG_DEFAULTS["formatters"] = {
 app = Sanic("nlp")
 config = load_config()
 app.config.update(asdict(config))
+app.config.update({"MOTOR_URI": "mongodb://mongodb:27017/nlp"})
 
 redis_connection = RedisPy.from_url(app.config["redis"]["uri"])
 
