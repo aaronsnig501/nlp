@@ -7,6 +7,9 @@ from sanic_ext import openapi, validate
 from sanic.request import Request as SanicRequest
 from sanic.response import BaseHTTPResponse as SanicResponse
 
+from application.pos_tagging.entities import ProcessRequestTokensResponse
+from application.pos_tagging.models import ProcessRequest
+
 from .managers import PoSTaggingManager
 from .validators import PoSTaggingRequestBody
 from application.shared.clients.aws.client import SyntaxToken
@@ -43,28 +46,29 @@ async def pos_tagging(
 
     Example Response:
         ```json
-        [
-            {
-                "token_id": 1,
-                "text": "hello",
-                "begin_offset": 0,
-                "end_offset": 5,
-                "part_of_speech": {
-                    "tag": "NOUN",
-                    "score": 0.9960765242576599
-                }
-            }
-        ]
+        {
+            "id": 60,
+            "process_request": {
+                "processor": "aws",
+                "language_code": "en",
+                "client_id": "d807e048-d118-4331-a8e6-d59cbe62cbd4"
+            },
+            "tokens": [
+                {
+                    "word": "hello",
+                    "tag": "NOUN"
+                },
+            ]
+        }
         ```
     """
-    syntax_tokens: list[SyntaxToken] = await tagging_manager.process_pos_tagging(
-        text=body.text,
-        language_code=body.language,
-        processor=body.processor,
+    process_requests: ProcessRequestTokensResponse = (
+        await tagging_manager.process_pos_tagging(
+            text=body.text,
+            language_code=body.language,
+            processor=body.processor,
+            client_id=body.client_id,
+        )
     )
 
-    syntax_tokens_as_dict: list[dict[str, Any]] = [
-        asdict(token) for token in syntax_tokens
-    ]
-
-    return json(syntax_tokens_as_dict)
+    return json(asdict(process_requests))

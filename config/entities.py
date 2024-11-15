@@ -20,7 +20,12 @@ class RedisConfig:
 
 
 @dataclass
+class DatabaseConfig:
+    uri: str
+
+@dataclass
 class Config:
     server: ServerConfig
     aws: AWSConfig
     redis: RedisConfig
+    database: DatabaseConfig
