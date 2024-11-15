@@ -6,6 +6,7 @@ from sanic import Sanic
 from sanic.log import logger, LOGGING_CONFIG_DEFAULTS
 from sanic.request import Request as SanicRequest
 from sanic.response import BaseHTTPResponse as SanicResponse
+from tortoise.contrib.sanic import register_tortoise
 
 from application.ping.controllers import bp as ping_blueprint
 from application.ping.manager import PingManager
@@ -50,7 +51,9 @@ aws_client = AWSComprehendClient(
     )
 )
 pos_pubsub = PoSPubSub(redis)
-tagging_manager = PoSTaggingManager(aws_client=aws_client, pubsub=pos_pubsub)
+tagging_manager = PoSTaggingManager(
+    aws_client=aws_client, pubsub=pos_pubsub
+)
 app.ext.dependency(aws_client)
 app.ext.dependency(tagging_manager, "tagging_manager")
 
@@ -73,3 +76,11 @@ async def callback_request(request: SanicRequest) -> None:
 @app.middleware("response")
 async def callback_response(request: SanicRequest, response: SanicResponse) -> None:
     logger.info(f"Request {request.path} processing finished")
+
+
+register_tortoise(
+    app,
+    db_url=app.config["database"]["uri"],
+    modules={"models": ["application.pos_tagging.models"]},
+    generate_schemas=False
+)
