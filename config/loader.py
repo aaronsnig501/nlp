@@ -1,5 +1,5 @@
 from os import environ
-from .entities import AWSConfig, Config, ServerConfig, RedisConfig
+from .entities import AWSConfig, Config, DatabaseConfig, ServerConfig, RedisConfig
 
 
 def load_config():
@@ -14,4 +14,12 @@ def load_config():
     redis_config: RedisConfig = RedisConfig(
         uri=environ["REDIS_URI"], channel=environ["NLP_REDIS_CHANNEL"]
     )
-    return Config(server=server_conf, aws=aws_config, redis=redis_config)
+    db_config: DatabaseConfig = DatabaseConfig(
+        uri=environ["MARIA_DB_URI"]
+    )
+    return Config(
+        server=server_conf,
+        aws=aws_config,
+        redis=redis_config,
+        database=db_config
+    )

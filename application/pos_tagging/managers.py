@@ -1,11 +1,9 @@
-from dataclasses import asdict
-from typing import Any
 from .cache import PoSPubSub
-from .models import PartOfSpeechTags
+from .models import ProcessRequest, ProcessRequestTokens, Token
+from .entities import TokenResponse, ProcessRequestResponse, ProcessRequestTokensResponse
 from application.shared.clients.aws.client import AWSComprehendClient
 from application.shared.clients.aws.entities import SyntaxToken
 from application.shared.clients.protocol import NlpClientProtocol
-
 
 
 class PoSTaggingManager:
@@ -18,33 +16,18 @@ class PoSTaggingManager:
     _clients: dict[str, NlpClientProtocol]
     _pubsub: PoSPubSub
 
-    def __init__(self, aws_client: AWSComprehendClient, pubsub: PoSPubSub) -> None:
+    def __init__(
+        self,
+        aws_client: AWSComprehendClient,
+        pubsub: PoSPubSub) -> None:
         self._clients = {
             "aws": aws_client
         }
         self._pubsub = pubsub
 
-    async def _insert_into_db(
-        self,
-        language_code: str,
-        processor: str,
-        syntax_tokens: list[dict[str, Any]]
-    ) -> None:
-        await PartOfSpeechTags.insert_one(
-            {
-                "language_code": language_code,
-                "processor": processor,
-                "syntax_tokens": syntax_tokens
-            }
-        )
-
     async def process_pos_tagging(
-        self,
-        text: str,
-        language_code: str,
-        processor: str,
-        client_id: str
-    ) -> list[SyntaxToken]:
+        self, text: str, language_code: str, processor: str, client_id: str,
+    ) -> ProcessRequestTokensResponse:
         """Process PoS Tagging
 
         Process the text and also publish update messages to pubsub channel
@@ -55,17 +38,44 @@ class PoSTaggingManager:
             processor (str): The name of the processor to use
 
         Returns:
-            list[SyntaxToken]: The syntax breakdown of the provided text
+            ProcessRequestTokensResponse: The syntax breakdown of the provided text
         """
         await self._pubsub.publish_request_received_message(client_id)
         client = self._clients[processor]
-        syntax_tokens: list[SyntaxToken] = client.detect_syntax(text, language_code)
-        await self._insert_into_db(
-            language_code,
-            processor,
-            [asdict(syntax_token) for syntax_token in syntax_tokens]
+
+        process_request = ProcessRequest(
+            processor=processor, language_code=language_code, client_id=client_id
         )
+        await process_request.save()
+
+        aws_tokens: list[SyntaxToken] = client.detect_syntax(text, language_code)
+
+        tokens: list[Token] = []
+        process_request_tokens: list[ProcessRequestTokens] = []
+        for token in aws_tokens:
+            token = Token(word=token.text, tag=token.part_of_speech.tag)
+            await token.save()
+            tokens.append(token)
+
+        for token in tokens:
+            process_request_tokens.append(
+                ProcessRequestTokens(process_request=process_request, token=token)
+            )
+        await ProcessRequestTokens.bulk_create(process_request_tokens)
+
+        process_request_with_tokens = ProcessRequestTokensResponse(
+            id=process_request.id,
+            process_request=ProcessRequestResponse(
+                processor=processor,
+                language_code=language_code,
+                client_id=client_id
+            ),
+            tokens=[
+                TokenResponse(word=token.word, tag=token.tag) for token in tokens
+            ]
+        )
+
         await self._pubsub.publish_request_processed_message(
-            syntax_tokens=syntax_tokens, client_id=client_id
+            process_request_tokens=process_request_with_tokens, client_id=client_id
         )
-        return syntax_tokens
+        return process_request_with_tokens
