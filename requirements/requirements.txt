@@ -1,7 +1,8 @@
+aerich==0.7.2
+asyncmy==0.2.9
 boto3==1.35.26
+orjson==3.10.7
 sanic==24.6.0
 sanic-ext==23.12.0
 tortoise-orm==0.21.7
-asyncmy==0.2.9
 redis==5.1.1
-orjson==3.10.7

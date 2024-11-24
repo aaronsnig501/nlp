@@ -55,3 +55,7 @@ filterwarnings = [
     "ignore:.*U.*:DeprecationWarning",
 ]
 addopts = "-p no:warnings"
+[tool.aerich]
+tortoise_orm = "db_local.TORTOISE_ORM"
+location = "./migrations"
+src_folder = "./."
