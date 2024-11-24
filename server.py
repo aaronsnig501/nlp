@@ -15,6 +15,9 @@ from application.pos_tagging.controllers import bp as pos_tagging_blueprint
 from application.pos_tagging.managers import PoSTaggingManager
 from application.pos_tagging.cache import PoSPubSub
 
+from application.support.controllers import bp as support_blueprint
+from application.support.manager import SupportManager
+
 from application.shared.clients.aws.client import AWSComprehendClient
 from application.shared.redis import Redis
 from config.loader import load_config
@@ -35,6 +38,20 @@ app.config.update(asdict(config))
 redis_connection = RedisPy.from_url(app.config["redis"]["uri"])
 
 redis = Redis(redis_connection, app.config["redis"]["channel"])
+
+TORTOISE_ORM = {
+    "connections": {"default": app.config["database"]["uri"]},
+    "apps": {
+        "models": {
+            "models": [
+                "aerich.models",
+                "application.pos_tagging.models",
+                "application.support.models",
+            ],
+            "default_connection": "default",
+        }
+    }
+}
 
 app.config.FALLBACK_ERROR_FORMAT = "json"
 
@@ -57,6 +74,10 @@ tagging_manager = PoSTaggingManager(
 app.ext.dependency(aws_client)
 app.ext.dependency(tagging_manager, "tagging_manager")
 
+support_manager = SupportManager()
+app.blueprint(support_blueprint)
+app.ext.dependency(support_manager)
+
 app.ext.openapi.describe(
     "Natural Language Processing API",
     version="0.1"
@@ -64,8 +85,10 @@ app.ext.openapi.describe(
 
 
 @app.listener("before_server_start")
-async def redis_setup(app, loop):
+async def before_server_start(app, loop):
     app.ctx.redis = redis
+
+
 
 
 @app.middleware("request")
@@ -74,13 +97,18 @@ async def callback_request(request: SanicRequest) -> None:
 
 
 @app.middleware("response")
-async def callback_response(request: SanicRequest, response: SanicResponse) -> None:
+async def callback_response(request: SanicRequest, _: SanicResponse) -> None:
     logger.info(f"Request {request.path} processing finished")
 
 
 register_tortoise(
     app,
-    db_url=app.config["database"]["uri"],
-    modules={"models": ["application.pos_tagging.models"]},
+    db_url=TORTOISE_ORM["connections"]["default"],
+    modules={
+        "models": [
+            "application.pos_tagging.models",
+            "application.support.models",
+        ]
+    },
     generate_schemas=False
 )
