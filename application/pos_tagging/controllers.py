@@ -1,18 +1,15 @@
 from dataclasses import asdict
-from typing import Any
 
 from sanic import Blueprint
-from sanic.response import json
-from sanic_ext import openapi, validate
+from sanic.response import json, BaseHTTPResponse as SanicResponse
 from sanic.request import Request as SanicRequest
-from sanic.response import BaseHTTPResponse as SanicResponse
+from sanic_ext import openapi, validate
 
 from application.pos_tagging.entities import ProcessRequestTokensResponse
-from application.pos_tagging.models import ProcessRequest
+from application.shared.clients.aws.client import SyntaxToken
 
 from .managers import PoSTaggingManager
 from .validators import PoSTaggingRequestBody
-from application.shared.clients.aws.client import SyntaxToken
 
 bp = Blueprint("pos_tagging", url_prefix="/api/pos")
 
@@ -27,9 +24,7 @@ bp = Blueprint("pos_tagging", url_prefix="/api/pos")
     "The syntactical breakdown of the provided text"
 )
 async def pos_tagging(
-    request: SanicRequest,
-    body: PoSTaggingRequestBody,
-    tagging_manager: PoSTaggingManager,
+    _: SanicRequest, body: PoSTaggingRequestBody, tagging_manager: PoSTaggingManager,
 ) -> SanicResponse:
     """PoS Tagging
 
