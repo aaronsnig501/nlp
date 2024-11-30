@@ -3,32 +3,29 @@ from dataclasses import asdict
 from boto3 import client
 from redis.asyncio import Redis as RedisPy
 from sanic import Sanic
-from sanic.log import logger, LOGGING_CONFIG_DEFAULTS
+from sanic.log import LOGGING_CONFIG_DEFAULTS, logger
 from sanic.request import Request as SanicRequest
 from sanic.response import BaseHTTPResponse as SanicResponse
 from tortoise.contrib.sanic import register_tortoise
 
 from application.ping.controllers import bp as ping_blueprint
 from application.ping.manager import PingManager
-
+from application.pos_tagging.cache import PoSPubSub
 from application.pos_tagging.controllers import bp as pos_tagging_blueprint
 from application.pos_tagging.managers import PoSTaggingManager
-from application.pos_tagging.cache import PoSPubSub
-
+from application.pos_tagging.repository import PoSTaggingRepository
+from application.shared.clients.decyphr.client import DecyphrNlpClient
+from application.shared.processors.aws.processor import AWSComprehendProcessor
+from application.shared.processors.decyphr.normaliser import DecyphrNlpNormaliser
+from application.shared.processors.decyphr.processor import DecyphrNlpProcessor
+from application.shared.redis import Redis
 from application.support.controllers import bp as support_blueprint
 from application.support.manager import SupportManager
-
-from application.shared.clients.aws.client import AWSComprehendClient
-from application.shared.redis import Redis
 from config.loader import load_config
 
 LOGGING_CONFIG_DEFAULTS["formatters"] = {
-    "generic": {
-        "class": "sanic.logging.formatter.JSONFormatter"
-    },
-    "access": {
-        "class": "sanic.logging.formatter.JSONFormatter"
-    }
+    "generic": {"class": "sanic.logging.formatter.JSONFormatter"},
+    "access": {"class": "sanic.logging.formatter.JSONFormatter"},
 }
 
 app = Sanic("nlp")
@@ -50,7 +47,7 @@ TORTOISE_ORM = {
             ],
             "default_connection": "default",
         }
-    }
+    },
 }
 
 app.config.FALLBACK_ERROR_FORMAT = "json"
@@ -59,36 +56,36 @@ app.blueprint(ping_blueprint)
 app.ext.dependency(PingManager(redis))
 
 app.blueprint(pos_tagging_blueprint)
-aws_client = AWSComprehendClient(
+aws_processor = AWSComprehendProcessor(
     client=client(
         "comprehend",
         "eu-west-1",
         aws_access_key_id=config.aws.aws_access_key,
-        aws_secret_access_key=config.aws.aws_secret_key
+        aws_secret_access_key=config.aws.aws_secret_key,
     )
+)
+decyphr_processor = DecyphrNlpProcessor(
+    DecyphrNlpClient(app.config["nlp"]["url"]), DecyphrNlpNormaliser()
 )
 pos_pubsub = PoSPubSub(redis)
 tagging_manager = PoSTaggingManager(
-    aws_client=aws_client, pubsub=pos_pubsub
+    aws_processor=aws_processor,
+    decyphr_processor=decyphr_processor,
+    pubsub=pos_pubsub,
+    repository=PoSTaggingRepository(),
 )
-app.ext.dependency(aws_client)
 app.ext.dependency(tagging_manager, "tagging_manager")
 
 support_manager = SupportManager()
 app.blueprint(support_blueprint)
 app.ext.dependency(support_manager)
 
-app.ext.openapi.describe(
-    "Natural Language Processing API",
-    version="0.1"
-)
+app.ext.openapi.describe("Natural Language Processing API", version="0.1")
 
 
 @app.listener("before_server_start")
 async def before_server_start(app, loop):
     app.ctx.redis = redis
-
-
 
 
 @app.middleware("request")
@@ -110,5 +107,5 @@ register_tortoise(
             "application.support.models",
         ]
     },
-    generate_schemas=False
+    generate_schemas=False,
 )
