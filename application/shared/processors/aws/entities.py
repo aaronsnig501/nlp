@@ -24,7 +24,7 @@ class SyntaxToken:
         text: str,
         begin_offset: int,
         end_offset: int,
-        part_of_speech: dict[str, Any]
+        part_of_speech: dict[str, Any],
     ) -> None:
         self.token_id = token_id
         self.text = text
@@ -55,7 +55,7 @@ class ResponseMetadata:
         request_id: str,
         http_status_code: int,
         http_headers: dict[str, Any],
-        retry_attempts: int
+        retry_attempts: int,
     ) -> None:
         self.request_id = request_id
         self.http_status_code = http_status_code
@@ -63,7 +63,7 @@ class ResponseMetadata:
             x_amzn_requestid=http_headers["x-amzn-requestid"],
             content_type=http_headers["content-type"],
             content_length=http_headers["content-length"],
-            date=http_headers["date"]
+            date=http_headers["date"],
         )
         self.retry_attempts = retry_attempts
 
@@ -82,7 +82,7 @@ class AWSResponse:
                 text=token["Text"],
                 begin_offset=token["BeginOffset"],
                 end_offset=token["EndOffset"],
-                part_of_speech=token["PartOfSpeech"]
+                part_of_speech=token["PartOfSpeech"],
             )
             for token in syntax_tokens
         ]
@@ -90,5 +90,5 @@ class AWSResponse:
             request_id=response_metadata["RequestId"],
             http_status_code=response_metadata["HTTPStatusCode"],
             http_headers=response_metadata["HTTPHeaders"],
-            retry_attempts=response_metadata["RetryAttempts"]
+            retry_attempts=response_metadata["RetryAttempts"],
         )
