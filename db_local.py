@@ -4,10 +4,10 @@ TORTOISE_ORM = {
         "models": {
             "models": [
                 "aerich.models",
-                "application.pos_tagging.models",
+                "application.processor.models",
                 "application.support.models",
             ],
             "default_connection": "default",
         }
-    }
+    },
 }

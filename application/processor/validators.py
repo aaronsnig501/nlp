@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class PoSTaggingRequestBody:
+class ProcessorRequestBody:
     text: str
     language: str
     processor: str

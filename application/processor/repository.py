@@ -1,9 +1,12 @@
-from application.pos_tagging.models import ProcessRequest, ProcessRequestTokens
-from application.pos_tagging.models import Token as TokenModel
-from application.shared.processors.entities import Token
+from .processors.entities import Token
+from .models import (
+    ProcessRequest,
+    ProcessRequestTokens,
+    Token as TokenModel,
+)
 
 
-class PoSTaggingRepository:
+class ProcessorRepository:
     async def save_process_request(
         self, processor_name: str, language_code: str, client_id: str
     ) -> ProcessRequest:

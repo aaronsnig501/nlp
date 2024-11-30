@@ -1,6 +1,7 @@
 from application.shared.clients.decyphr.client import DecyphrNlpClient
-from application.shared.processors.decyphr.normaliser import DecyphrNlpNormaliser
-from application.shared.processors.entities import Tokens
+
+from .normaliser import DecyphrNlpNormaliser
+from application.processor.processors.entities import Tokens
 
 
 class DecyphrNlpProcessor:
@@ -15,5 +16,5 @@ class DecyphrNlpProcessor:
 
     async def detect_syntax(self, text: str, language_code: str) -> Tokens:
         return self._normaliser.normalise(
-            await self._client.get_part_of_speech_tags(text, language_code)
+            await self._client.process_text(text, language_code)
         )

@@ -4,42 +4,34 @@ from sanic import Blueprint
 from sanic.request import Request as SanicRequest
 from sanic.response import BaseHTTPResponse as SanicResponse
 from sanic.response import json
-from sanic_ext import openapi, validate
+from sanic_ext import validate
 
-from application.pos_tagging.entities import ProcessRequestTokensResponse
-from application.shared.processors.aws.entities import SyntaxToken
+from application.processor.entities import ProcessRequestTokensResponse
 
-from .managers import PoSTaggingManager
-from .validators import PoSTaggingRequestBody
+from .manager import ProcessorManager
+from .validators import ProcessorRequestBody
 
-bp = Blueprint("pos_tagging", url_prefix="/api/pos")
+bp = Blueprint("processor", url_prefix="/api/processor")
 
 
-@bp.post("/tagging")
-@validate(json=PoSTaggingRequestBody)
-@openapi.summary("Perform PoS Tagging")
-@openapi.body({"application/json": PoSTaggingRequestBody})
-@openapi.response(
-    200,
-    {"application/json": list[SyntaxToken]},
-    "The syntactical breakdown of the provided text",
-)
-async def pos_tagging(
+@bp.post("/process")
+@validate(json=ProcessorRequestBody)
+async def processor(
     _: SanicRequest,
-    body: PoSTaggingRequestBody,
-    tagging_manager: PoSTaggingManager,
+    body: ProcessorRequestBody,
+    processor_manager: ProcessorManager,
 ) -> SanicResponse:
-    """PoS Tagging
+    """Natural language processor
 
-    Determine the parts of speech of the provided text, from the given language code,
-    using the provided provider (AWS Comprehend, Google NLP, etc)
+    Processor the text provided to determine the syntax tags, sentiment analysis, NER,
+    etc
 
     Example Usage:
         ```sh
         curl --header "Content-Type: application/json" \
             --request POST \
             --data '{"text": "hello", "language": "en", "processor": "aws"}' \
-            http://localhost:8000/api/pos/tagging | jq
+            http://localhost:8000/api/processor/process | jq
         ```
 
     Example Response:
@@ -61,7 +53,7 @@ async def pos_tagging(
         ```
     """
     process_requests: ProcessRequestTokensResponse = (
-        await tagging_manager.process_pos_tagging(
+        await processor_manager.process_pos_tagging(
             text=body.text,
             language_code=body.language,
             processor_name=body.processor,

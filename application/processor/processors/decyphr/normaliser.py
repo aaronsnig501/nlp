@@ -1,5 +1,5 @@
 from application.shared.clients.decyphr.types import NlpTaggingResponse
-from application.shared.processors.entities import Token, Tokens
+from application.processor.processors.entities import Token, Tokens
 
 
 class DecyphrNlpNormaliser:
