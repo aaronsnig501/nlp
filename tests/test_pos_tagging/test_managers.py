@@ -2,27 +2,31 @@ from typing import Any
 from unittest.mock import create_autospec
 
 from pytest import mark
-from application.pos_tagging.managers import PoSTaggingManager, AWSComprehendClient
+
 from application.pos_tagging.cache import PoSPubSub
-from application.shared.clients.aws.entities import SyntaxToken
+from application.pos_tagging.managers import PoSTaggingManager
+from application.shared.processors.aws.entities import SyntaxToken
+from application.shared.processors.aws.processor import AWSComprehendProcessor
+from application.shared.processors.decyphr.processor import DecyphrNlpProcessor
 
 
 class TestPoSTaggingManager:
-
     @mark.asyncio
     async def test_detect_syntax(
         self,
         mocker: Any,
         detect_syntax_return_value: list[SyntaxToken],
-        comprehend_client: AWSComprehendClient
+        aws_processor: AWSComprehendProcessor,
+        decyphr_processor: DecyphrNlpProcessor,
     ) -> None:
         aws_comprehend_mock = mocker.patch.object(
-            AWSComprehendClient, "detect_syntax",
+            AWSComprehendProcessor,
+            "detect_syntax",
         )
         aws_comprehend_mock.return_value = detect_syntax_return_value
 
         pubsub_mock = create_autospec(PoSPubSub)
-        manager = PoSTaggingManager(comprehend_client, pubsub_mock)
+        manager = PoSTaggingManager(aws_processor, decyphr_processor, pubsub_mock)
         assert (
             await manager.process_pos_tagging("hi", "en", "aws", "123")
             == detect_syntax_return_value

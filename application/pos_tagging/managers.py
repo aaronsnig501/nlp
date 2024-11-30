@@ -1,9 +1,15 @@
+from application.pos_tagging.repository import PoSTaggingRepository
+from application.shared.processors.aws.processor import AWSComprehendProcessor
+from application.shared.processors.decyphr.processor import DecyphrNlpProcessor
+from application.shared.processors.entities import Tokens
+from application.shared.processors.protocol import NlpProcessorProtocol
+
 from .cache import PoSPubSub
-from .models import ProcessRequest, ProcessRequestTokens, Token
-from .entities import TokenResponse, ProcessRequestResponse, ProcessRequestTokensResponse
-from application.shared.clients.aws.client import AWSComprehendClient
-from application.shared.clients.aws.entities import SyntaxToken
-from application.shared.clients.protocol import NlpClientProtocol
+from .entities import (
+    ProcessRequestResponse,
+    ProcessRequestTokensResponse,
+    TokenResponse,
+)
 
 
 class PoSTaggingManager:
@@ -13,20 +19,27 @@ class PoSTaggingManager:
     of text from a specified provider (i.e. AWS Comprehend, Google NLP, etc)
     """
 
-    _clients: dict[str, NlpClientProtocol]
+    _processors: dict[str, NlpProcessorProtocol]
     _pubsub: PoSPubSub
+    _repository: PoSTaggingRepository
 
     def __init__(
         self,
-        aws_client: AWSComprehendClient,
-        pubsub: PoSPubSub) -> None:
-        self._clients = {
-            "aws": aws_client
-        }
+        aws_processor: AWSComprehendProcessor,
+        decyphr_processor: DecyphrNlpProcessor,
+        pubsub: PoSPubSub,
+        repository: PoSTaggingRepository,
+    ) -> None:
+        self._processors = {"aws": aws_processor, "decyphr": decyphr_processor}  # type: ignore
         self._pubsub = pubsub
+        self._repository = repository
 
     async def process_pos_tagging(
-        self, text: str, language_code: str, processor: str, client_id: str,
+        self,
+        text: str,
+        language_code: str,
+        processor_name: str,
+        client_id: str,
     ) -> ProcessRequestTokensResponse:
         """Process PoS Tagging
 
@@ -41,38 +54,26 @@ class PoSTaggingManager:
             ProcessRequestTokensResponse: The syntax breakdown of the provided text
         """
         await self._pubsub.publish_request_received_message(client_id)
-        client = self._clients[processor]
+        processor: NlpProcessorProtocol = self._processors[processor_name]
 
-        process_request = ProcessRequest(
-            processor=processor, language_code=language_code, client_id=client_id
+        process_request = await self._repository.save_process_request(
+            processor_name, language_code, client_id
         )
-        await process_request.save()
 
-        aws_tokens: list[SyntaxToken] = client.detect_syntax(text, language_code)
+        syntax_tokens: Tokens = await processor.detect_syntax(text, language_code)
 
-        tokens: list[Token] = []
-        process_request_tokens: list[ProcessRequestTokens] = []
-        for token in aws_tokens:
-            token = Token(word=token.text, tag=token.part_of_speech.tag)
-            await token.save()
-            tokens.append(token)
-
-        for token in tokens:
-            process_request_tokens.append(
-                ProcessRequestTokens(process_request=process_request, token=token)
-            )
-        await ProcessRequestTokens.bulk_create(process_request_tokens)
+        tokens = await self._repository.save_process_request_with_tokens(
+            syntax_tokens.tokens, process_request
+        )
 
         process_request_with_tokens = ProcessRequestTokensResponse(
             id=process_request.id,
             process_request=ProcessRequestResponse(
-                processor=processor,
+                processor=processor_name,
                 language_code=language_code,
-                client_id=client_id
+                client_id=client_id,
             ),
-            tokens=[
-                TokenResponse(word=token.word, tag=token.tag) for token in tokens
-            ]
+            tokens=[TokenResponse(word=token.word, tag=token.tag) for token in tokens],
         )
 
         await self._pubsub.publish_request_processed_message(
