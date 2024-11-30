@@ -2,7 +2,7 @@ from unittest.mock import create_autospec
 
 from pytest import mark
 
-from application.pos_tagging.cache import PoSPubSub, Redis
+from application.processor.cache import ProcessorPubSub, Redis
 from application.shared.enums.message_types import MessageTypes
 from application.shared.processors.aws.entities import SyntaxToken
 
@@ -11,7 +11,7 @@ class TestCache:
     @mark.asyncio
     async def test_publish_received_message(self) -> None:
         mock_redis = create_autospec(Redis)
-        pubsub = PoSPubSub(mock_redis)
+        pubsub = ProcessorPubSub(mock_redis)
 
         await pubsub.publish_request_received_message("123")
 
@@ -24,7 +24,7 @@ class TestCache:
         self, detect_syntax_return_value: list[SyntaxToken]
     ) -> None:
         mock_redis = create_autospec(Redis)
-        pubsub = PoSPubSub(mock_redis)
+        pubsub = ProcessorPubSub(mock_redis)
 
         await pubsub.publish_request_processed_message(
             detect_syntax_return_value, "123"
