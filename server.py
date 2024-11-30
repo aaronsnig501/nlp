@@ -65,7 +65,7 @@ aws_processor = AWSComprehendProcessor(
     )
 )
 decyphr_processor = DecyphrNlpProcessor(
-    DecyphrNlpClient("http://nlp:80/"), DecyphrNlpNormaliser()
+    DecyphrNlpClient(app.config["nlp"]["url"]), DecyphrNlpNormaliser()
 )
 pos_pubsub = PoSPubSub(redis)
 tagging_manager = PoSTaggingManager(

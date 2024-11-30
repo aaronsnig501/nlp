@@ -23,9 +23,16 @@ class RedisConfig:
 class DatabaseConfig:
     uri: str
 
+
+@dataclass
+class NlpConfig:
+    url: str
+
+
 @dataclass
 class Config:
     server: ServerConfig
     aws: AWSConfig
     redis: RedisConfig
     database: DatabaseConfig
+    nlp: NlpConfig
