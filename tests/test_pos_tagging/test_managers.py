@@ -3,11 +3,12 @@ from unittest.mock import create_autospec
 
 from pytest import mark
 
-from application.pos_tagging.cache import PoSPubSub
-from application.pos_tagging.managers import PoSTaggingManager
-from application.shared.processors.aws.entities import SyntaxToken
-from application.shared.processors.aws.processor import AWSComprehendProcessor
-from application.shared.processors.decyphr.processor import DecyphrNlpProcessor
+from application.processor.cache import ProcessorPubSub
+from application.processor.manager import ProcessorManager
+from application.processor.repository import ProcessorRepository
+from application.processor.processors.aws.entities import SyntaxToken
+from application.processor.processors.aws.processor import AWSComprehendProcessor
+from application.processor.processors.decyphr.processor import DecyphrNlpProcessor
 
 
 class TestPoSTaggingManager:
@@ -25,8 +26,10 @@ class TestPoSTaggingManager:
         )
         aws_comprehend_mock.return_value = detect_syntax_return_value
 
-        pubsub_mock = create_autospec(PoSPubSub)
-        manager = PoSTaggingManager(aws_processor, decyphr_processor, pubsub_mock)
+        pubsub_mock = create_autospec(ProcessorPubSub)
+        manager = ProcessorManager(
+            aws_processor, decyphr_processor, pubsub_mock, ProcessorRepository()
+        )
         assert (
             await manager.process_pos_tagging("hi", "en", "aws", "123")
             == detect_syntax_return_value

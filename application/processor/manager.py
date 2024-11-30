@@ -1,34 +1,34 @@
-from application.pos_tagging.repository import PoSTaggingRepository
-from application.shared.processors.aws.processor import AWSComprehendProcessor
-from application.shared.processors.decyphr.processor import DecyphrNlpProcessor
-from application.shared.processors.entities import Tokens
-from application.shared.processors.protocol import NlpProcessorProtocol
-
-from .cache import PoSPubSub
+from .cache import ProcessorPubSub
 from .entities import (
     ProcessRequestResponse,
     ProcessRequestTokensResponse,
     TokenResponse,
 )
+from .repository import ProcessorRepository
+
+from .processors.aws.processor import AWSComprehendProcessor
+from .processors.decyphr.processor import DecyphrNlpProcessor
+from .processors.entities import Tokens
+from .processors.protocol import NlpProcessorProtocol
 
 
-class PoSTaggingManager:
-    """PoS Tagging Manager
+class ProcessorManager:
+    """Processor manager
 
-    The manager responsible for performing the part of speech tagging for a given piece
-    of text from a specified provider (i.e. AWS Comprehend, Google NLP, etc)
+    Provides the interaction betweent the controller and the processors that process
+    the data and the datastores, etc
     """
 
     _processors: dict[str, NlpProcessorProtocol]
-    _pubsub: PoSPubSub
-    _repository: PoSTaggingRepository
+    _pubsub: ProcessorPubSub
+    _repository: ProcessorRepository
 
     def __init__(
         self,
         aws_processor: AWSComprehendProcessor,
         decyphr_processor: DecyphrNlpProcessor,
-        pubsub: PoSPubSub,
-        repository: PoSTaggingRepository,
+        pubsub: ProcessorPubSub,
+        repository: ProcessorRepository,
     ) -> None:
         self._processors = {"aws": aws_processor, "decyphr": decyphr_processor}  # type: ignore
         self._pubsub = pubsub
