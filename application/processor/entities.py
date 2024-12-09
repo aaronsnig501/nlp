@@ -15,6 +15,7 @@ class ProcessRequestResponse:
     processor: str
     language_code: str
     client_id: str
+    text: str
 
 
 @dataclass

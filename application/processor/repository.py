@@ -8,7 +8,7 @@ from .models import (
 
 class ProcessorRepository:
     async def save_process_request(
-        self, processor_name: str, language_code: str, client_id: str
+        self, processor_name: str, language_code: str, client_id: str, text: str
     ) -> ProcessRequest:
         """Store the `ProcessRequest` in the DB
 
@@ -16,12 +16,16 @@ class ProcessorRepository:
             processor_name (str): The name of the processor
             language_code (str): The ISO 3166-1 alpha-2 of the text language
             client_id (str): UUID identifier
+            text (str): Text to process
 
         Returns:
             ProcessRequest: The instance of the `ProcessRequest`
         """
         process_request = ProcessRequest(
-            processor=processor_name, language_code=language_code, client_id=client_id
+            processor=processor_name,
+            language_code=language_code,
+            client_id=client_id,
+            text=text,
         )
         await process_request.save()
         return process_request

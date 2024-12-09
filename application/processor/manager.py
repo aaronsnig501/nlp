@@ -60,7 +60,7 @@ class ProcessorManager:
         processor: NlpProcessorProtocol = self._processors[processor_name]
 
         process_request = await self._repository.save_process_request(
-            processor_name, language_code, client_id
+            processor_name, language_code, client_id, text
         )
 
         response: NlpResponseDict = await self._decyphr_client.get_processed_text(
@@ -80,6 +80,7 @@ class ProcessorManager:
                 processor=process_request.processor,
                 language_code=process_request.language_code,
                 client_id=process_request.client_id,
+                text=process_request.text,
             ),
             tokens=normalised_data.tokens,
             analysis=normalised_data.analysis,

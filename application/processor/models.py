@@ -1,20 +1,24 @@
 from tortoise import Model
-from tortoise.fields import IntField, CharField, ForeignKeyField, ManyToManyField
+from tortoise.fields import (
+    IntField,
+    CharField,
+    TextField,
+    ForeignKeyField,
+    ManyToManyField,
+)
 
 
 class ProcessRequest(Model):
-
     id = IntField(primary_key=True)
     processor = CharField(max_length=15)
     language_code = CharField(max_length=5)
     client_id = CharField(max_length=50)
+    text = TextField()
     tokens = ManyToManyField(
-        "models.Token",
-        related_name="tokens",
-        through="ProcessRequestTokens"
+        "models.Token", related_name="tokens", through="ProcessRequestTokens"
     )
 
-    class Meta: # type: ignore
+    class Meta:  # type: ignore
         table = "process_request"
 
     def __str__(self):
@@ -22,12 +26,11 @@ class ProcessRequest(Model):
 
 
 class Token(Model):
-
     id = IntField(primary_key=True)
     word = CharField(max_length=50)
     tag = CharField(max_length=50)
 
-    class Meta: # type: ignore
+    class Meta:  # type: ignore
         table = "token"
         unique_together = ("word", "tag")
 
@@ -39,5 +42,5 @@ class ProcessRequestTokens(Model):
     process_request = ForeignKeyField("models.ProcessRequest")
     token = ForeignKeyField("models.Token")
 
-    class Meta: # type: ignore
+    class Meta:  # type: ignore
         table = "process_request_tokens"
