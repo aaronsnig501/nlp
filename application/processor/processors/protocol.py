@@ -1,24 +1,21 @@
 from typing import Protocol
 
 from application.shared.clients.decyphr.types import NlpResponseDict
-from .entities import NormalisedNlp, Tokens
+from .entities import NormalisedNlp
 
 
 class NlpProcessorProtocol(Protocol):
-    async def detect_syntax(self, data: NlpResponseDict) -> Tokens:  # type: ignore
-        """Detect Syntax
-
-        Contacts NLP API to get the syntactical breakdown of the provided text in the
-        given language.
-
-        Args:
-            text (str): The text to determine the syntax of
-            language_code (str): The code of the language
-
-        Returns:
-            list[SyntaxToken]: The syntax breakdown of the provided text
-        """
-
     async def normalise_and_post_process_data(
         self, data: NlpResponseDict
-    ) -> NormalisedNlp: ...
+    ) -> NormalisedNlp:  # type: ignore
+        """Normalise and post process data
+
+        Perform the post processing on the data that is returned from the NLP provider
+        to ensure that the data is normalised
+
+        Args:
+            data (NlpResponseDict): The data from the NLP provider
+
+        Returns:
+            NormalisedNlp: The normalised data
+        """

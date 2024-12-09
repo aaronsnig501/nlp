@@ -10,6 +10,17 @@ class DecyphrNlpClient:
         self._base_url = base_url
 
     async def get_processed_text(self, text: str, language: str) -> NlpResponseDict:
+        """Get Processed Text
+
+        Contact the Decyphr NLP service to process the text
+
+        Args:
+            text (str): The text to be processed
+            language (str): The ISO 3166-1 alpha-2 of the text language
+
+        Returns:
+            NlpResponseDict: The data returned from the NLP service
+        """
         async with ClientSession() as session:
             async with session.post(
                 f"{self._base_url}api/processing",

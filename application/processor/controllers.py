@@ -27,27 +27,101 @@ async def processor(
 
     Example Usage:
         ```sh
-        curl --header "Content-Type: application/json" \
-            --request POST \
-            --data '{"text": "hello", "language": "en", "processor": "aws"}' \
-            http://localhost:8000/api/processor/process | jq
+        curl --request POST \
+            --url http://localhost:8000/api/processor/process \
+            --header 'Content-Type: application/json' \
+            --data '{ \
+                "language": "en",\
+                "processor":"decyphr",\
+                "text":"I really hate doing assignments on weekends so much!", \
+                "client_id":"14807eb6-ad8c-4e75-a1e5-5d436d30da68" \
+            }'
         ```
 
     Example Response:
         ```json
         {
-            "id": 60,
+            "id": 155,
             "process_request": {
-                "processor": "aws",
+                "processor": "decyphr",
                 "language_code": "en",
-                "client_id": "d807e048-d118-4331-a8e6-d59cbe62cbd4"
+                "client_id": "14807eb6-ad8c-4e75-a1e5-5d436d30da68"
             },
             "tokens": [
                 {
-                    "word": "hello",
-                    "tag": "NOUN"
+                    "text": "I",
+                    "tag": "PRON",
+                    "display_name": "pronoun"
                 },
-            ]
+                {
+                    "text": "really",
+                    "tag": "ADV",
+                    "display_name": "adverb"
+                },
+                {
+                    "text": "hate",
+                    "tag": "VERB",
+                    "display_name": "verb"
+                },
+                {
+                    "text": "doing",
+                    "tag": "VERB",
+                    "display_name": "verb"
+                },
+                {
+                    "text": "assignments",
+                    "tag": "NOUN",
+                    "display_name": "noun"
+                },
+                {
+                    "text": "on",
+                    "tag": "ADP",
+                    "display_name": "adposition"
+                },
+                {
+                    "text": "weekends",
+                    "tag": "NOUN",
+                    "display_name": "noun"
+                },
+                {
+                    "text": "so",
+                    "tag": "ADV",
+                    "display_name": "adverb"
+                },
+                {
+                    "text": "much",
+                    "tag": "ADV",
+                    "display_name": "adverb"
+                },
+                {
+                    "text": "!",
+                    "tag": "PUNCT",
+                    "display_name": "punctuation"
+                }
+            ],
+            "analysis": {
+                "text": "I really hate doing assignments on weekends so much! ",
+                "mood": "negative",
+                "bias": "subjective",
+                "assessment": [
+                    {
+                        "tokens": [
+                            "really",
+                            "hate"
+                        ],
+                        "mood": "negative",
+                        "bias": "subjective"
+                    },
+                    {
+                        "tokens": [
+                            "much",
+                            "!"
+                        ],
+                        "mood": "positive",
+                        "bias": "objective"
+                    }
+                ]
+            }
         }
         ```
     """

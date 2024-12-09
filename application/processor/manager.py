@@ -42,6 +42,19 @@ class ProcessorManager:
     async def handle_processing(
         self, text: str, language_code: str, processor_name: str, client_id: str
     ) -> ProcessedTextResponse:
+        """Handle processing
+
+        Handle the processing of the processor request
+
+        Args:
+            text (str): The text to process
+            language_code (str): The ISO 3166-1 alpha-2 code of the text language
+            processor_name (str): The name of the processor to use
+            client_id (str): UUID identifier
+
+        Returns:
+            ProcessedTextResponse: The processed data
+        """
         logger.info("Request received from UI")
         await self._pubsub.publish_request_received_message(client_id)
         processor: NlpProcessorProtocol = self._processors[processor_name]
