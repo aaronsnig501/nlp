@@ -1,4 +1,4 @@
-from .processors.entities import Token
+from application.processor.processors.entities import Token
 from .models import (
     ProcessRequest,
     ProcessRequestTokens,
@@ -17,11 +17,11 @@ class ProcessorRepository:
         return process_request
 
     async def save_process_request_with_tokens(
-        self, syntax_tokens: list[Token], process_request: ProcessRequest
+        self, processed_tokens: list[Token], process_request: ProcessRequest
     ) -> list[TokenModel]:
         tokens: list[TokenModel] = []
         process_request_tokens: list[ProcessRequestTokens] = []
-        for token in syntax_tokens:
+        for token in processed_tokens:
             token = TokenModel(word=token.text, tag=token.tag)
             await token.save()
             tokens.append(token)

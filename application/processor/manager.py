@@ -1,14 +1,16 @@
+from sanic.log import logger
+
+from application.shared.clients.decyphr.client import DecyphrNlpClient
+from application.shared.clients.decyphr.types import NlpResponseDict
 from .cache import ProcessorPubSub
 from .entities import (
     ProcessRequestResponse,
-    ProcessRequestTokensResponse,
-    TokenResponse,
+    ProcessedTextResponse,
 )
 from .repository import ProcessorRepository
 
 from .processors.aws.processor import AWSComprehendProcessor
 from .processors.decyphr.processor import DecyphrNlpProcessor
-from .processors.entities import Tokens
 from .processors.protocol import NlpProcessorProtocol
 
 
@@ -22,6 +24,7 @@ class ProcessorManager:
     _processors: dict[str, NlpProcessorProtocol]
     _pubsub: ProcessorPubSub
     _repository: ProcessorRepository
+    _decyphr_client: DecyphrNlpClient
 
     def __init__(
         self,
@@ -29,30 +32,17 @@ class ProcessorManager:
         decyphr_processor: DecyphrNlpProcessor,
         pubsub: ProcessorPubSub,
         repository: ProcessorRepository,
+        decyphr_client: DecyphrNlpClient,
     ) -> None:
         self._processors = {"aws": aws_processor, "decyphr": decyphr_processor}  # type: ignore
         self._pubsub = pubsub
         self._repository = repository
+        self._decyphr_client = decyphr_client
 
-    async def process_pos_tagging(
-        self,
-        text: str,
-        language_code: str,
-        processor_name: str,
-        client_id: str,
-    ) -> ProcessRequestTokensResponse:
-        """Process PoS Tagging
-
-        Process the text and also publish update messages to pubsub channel
-
-        Args:
-            text (str): The text to be processed
-            language_code (str): The code of the language used in the text
-            processor (str): The name of the processor to use
-
-        Returns:
-            ProcessRequestTokensResponse: The syntax breakdown of the provided text
-        """
+    async def handle_processing(
+        self, text: str, language_code: str, processor_name: str, client_id: str
+    ) -> ProcessedTextResponse:
+        logger.info("Request received from UI")
         await self._pubsub.publish_request_received_message(client_id)
         processor: NlpProcessorProtocol = self._processors[processor_name]
 
@@ -60,23 +50,31 @@ class ProcessorManager:
             processor_name, language_code, client_id
         )
 
-        syntax_tokens: Tokens = await processor.detect_syntax(text, language_code)
-
-        tokens = await self._repository.save_process_request_with_tokens(
-            syntax_tokens.tokens, process_request
+        response: NlpResponseDict = await self._decyphr_client.get_processed_text(
+            text, language_code
         )
 
-        process_request_with_tokens = ProcessRequestTokensResponse(
+        normalised_data = await processor.normalise_and_post_process_data(response)
+        logger.info("ProcessorManager: Response normalised")
+
+        await self._repository.save_process_request_with_tokens(
+            normalised_data.tokens, process_request
+        )
+
+        processed_text_response = ProcessedTextResponse(
             id=process_request.id,
             process_request=ProcessRequestResponse(
-                processor=processor_name,
-                language_code=language_code,
-                client_id=client_id,
+                processor=process_request.processor,
+                language_code=process_request.language_code,
+                client_id=process_request.client_id,
             ),
-            tokens=[TokenResponse(word=token.word, tag=token.tag) for token in tokens],
+            tokens=normalised_data.tokens,
+            analysis=normalised_data.analysis,
         )
 
         await self._pubsub.publish_request_processed_message(
-            process_request_tokens=process_request_with_tokens, client_id=client_id
+            processed_text_response=processed_text_response,
+            client_id=process_request.client_id,
         )
-        return process_request_with_tokens
+
+        return processed_text_response

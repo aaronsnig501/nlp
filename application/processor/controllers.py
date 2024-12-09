@@ -6,7 +6,6 @@ from sanic.response import BaseHTTPResponse as SanicResponse
 from sanic.response import json
 from sanic_ext import validate
 
-from application.processor.entities import ProcessRequestTokensResponse
 
 from .manager import ProcessorManager
 from .validators import ProcessorRequestBody
@@ -52,13 +51,11 @@ async def processor(
         }
         ```
     """
-    process_requests: ProcessRequestTokensResponse = (
-        await processor_manager.process_pos_tagging(
-            text=body.text,
-            language_code=body.language,
-            processor_name=body.processor,
-            client_id=body.client_id,
-        )
+    process_requests = await processor_manager.handle_processing(
+        text=body.text,
+        language_code=body.language,
+        processor_name=body.processor,
+        client_id=body.client_id,
     )
 
     return json(asdict(process_requests))

@@ -1,4 +1,4 @@
-FROM python:3.12.6-alpine3.20
+FROM python:3.13.1-alpine3.20
 RUN apk add build-base
 WORKDIR /sanic
 COPY . .

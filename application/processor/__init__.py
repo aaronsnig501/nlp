@@ -21,15 +21,14 @@ def register_processor_blueprint(app: Sanic, redis: Redis) -> None:
             aws_secret_access_key=app.config["aws"]["aws_secret_key"],
         )
     )
-    decyphr_processor = DecyphrNlpProcessor(
-        DecyphrNlpClient(app.config["nlp"]["url"]), DecyphrNlpNormaliser()
-    )
+    decyphr_processor = DecyphrNlpProcessor(DecyphrNlpNormaliser())
     processor_pubsub = ProcessorPubSub(redis)
     processor_manager = ProcessorManager(
         aws_processor=aws_processor,
         decyphr_processor=decyphr_processor,
         pubsub=processor_pubsub,
         repository=ProcessorRepository(),
+        decyphr_client=DecyphrNlpClient(app.config["nlp"]["url"]),
     )
 
     app.blueprint(ProcessingController)

@@ -1,20 +1,16 @@
-from application.shared.clients.decyphr.client import DecyphrNlpClient
+from application.shared.clients.decyphr.types import NlpResponseDict
 
 from .normaliser import DecyphrNlpNormaliser
-from application.processor.processors.entities import Tokens
+from application.processor.processors.entities import NormalisedNlp
 
 
 class DecyphrNlpProcessor:
-    _client: DecyphrNlpClient
     _normaliser: DecyphrNlpNormaliser
 
-    def __init__(
-        self, client: DecyphrNlpClient, normaliser: DecyphrNlpNormaliser
-    ) -> None:
-        self._client = client
+    def __init__(self, normaliser: DecyphrNlpNormaliser) -> None:
         self._normaliser = normaliser
 
-    async def detect_syntax(self, text: str, language_code: str) -> Tokens:
-        return self._normaliser.normalise(
-            await self._client.process_text(text, language_code)
-        )
+    async def normalise_and_post_process_data(
+        self, data: NlpResponseDict
+    ) -> NormalisedNlp:
+        return self._normaliser.normalise(data)

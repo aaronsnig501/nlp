@@ -1,5 +1,6 @@
 from dataclasses import asdict
-from application.processor.entities import ProcessRequestTokensResponse
+from sanic.log import logger
+from application.processor.entities import ProcessedTextResponse
 from application.shared.enums.message_types import MessageTypes
 from application.shared.redis import Redis
 
@@ -12,24 +13,26 @@ class ProcessorPubSub:
 
     async def publish_request_received_message(self, client_id: str) -> None:
         """Publish the `REQUEST_RECEIVED` message"""
+        logger.info("ProcessorPubSub: Publishing REQUEST_RECEIVED to pubsub")
         await self._redis.publish_message(
             {"message_type": MessageTypes.REQUEST_RECEIVED.value}, client_id
         )
 
     async def publish_request_processed_message(
-        self, process_request_tokens: ProcessRequestTokensResponse, client_id: str
+        self, processed_text_response: ProcessedTextResponse, client_id: str
     ) -> None:
         """Publish request processed message
 
         Publish the `REQUEST_PROCESSED` message with the syntax tokens
 
         Args:
-            process_request_tokens (ProcessRequestTokensResponse): The data to publish
+            processed_text_response (ProcessedTextResponse): The data to publish
         """
+        logger.info("ProcessorPubSub: Publishing REQUEST_PROCESSED to pubsub")
         await self._redis.publish_message(
             {
                 "message_type": MessageTypes.REQUEST_PROCESSED.value,
-                "process_request_tokens": asdict(process_request_tokens),
+                "process_request_tokens": asdict(processed_text_response),
             },
             client_id=client_id,
         )
