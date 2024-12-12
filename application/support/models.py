@@ -1,6 +1,10 @@
 from tortoise import Model
 from tortoise.fields import (
-    IntField, CharField, ForeignKeyField, ManyToManyField, CASCADE
+    IntField,
+    CharField,
+    ForeignKeyField,
+    ManyToManyField,
+    CASCADE,
 )
 
 
@@ -12,8 +16,8 @@ class Domain(Model):
         "models.Service", "services", on_delete=CASCADE, null=False, blank=False
     )
 
-    class Meta: # type: ignore
-        table = "nlp_domains"
+    class Meta:  # type: ignore
+        table = "domains"
 
     def __str__(self) -> str:
         return self.name
@@ -24,11 +28,11 @@ class Service(Model):
     name = CharField(max_length=25, null=False, blank=False)
     display_name = CharField(max_length=50, null=False, blank=False)
     languages = ManyToManyField(
-        "models.Language", related_name="langauges", through="ServiceLanguage"
+        "models.Language", related_name="langauges", through="service_languages"
     )
 
-    class Meta: # type: ignore
-        table = "nlp_services"
+    class Meta:  # type: ignore
+        table = "services"
 
     def __str__(self) -> str:
         return self.name
@@ -39,8 +43,8 @@ class ServiceLanguage(Model):
     service = ForeignKeyField("models.Service")
     language = ForeignKeyField("models.Language")
 
-    class Meta: # type: ignore
-        table = "nlp_service_languages"
+    class Meta:  # type: ignore
+        table = "service_languages"
 
 
 class Language(Model):
@@ -49,8 +53,8 @@ class Language(Model):
     short_code = CharField(max_length=2, null=False, blank=False)
     long_code = CharField(max_length=8, null=False, blank=False)
 
-    class Meta: # type: ignore
-        table = "nlp_languages"
+    class Meta:  # type: ignore
+        table = "languages"
 
     def __str__(self) -> str:
         return f"{self.name} - {self.short_code} ({self.long_code})"

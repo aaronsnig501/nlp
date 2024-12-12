@@ -71,7 +71,7 @@ class ProcessorManager:
         logger.info("ProcessorManager: Response normalised")
 
         await self._repository.save_process_request_with_tokens(
-            normalised_data.tokens, process_request
+            normalised_data.tokens, normalised_data.analysis, process_request
         )
 
         processed_text_response = ProcessedTextResponse(

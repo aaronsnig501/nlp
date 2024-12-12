@@ -1,7 +1,11 @@
-from application.processor.processors.entities import Token
+from tortoise.exceptions import DoesNotExist
+
+from application.processor.processors.entities import Token, SentimentAnalysis
 from .models import (
+    Assessment,
     ProcessRequest,
     ProcessRequestTokens,
+    SentimentAnalysis as SentimentAnalysisModel,
     Token as TokenModel,
 )
 
@@ -31,7 +35,10 @@ class ProcessorRepository:
         return process_request
 
     async def save_process_request_with_tokens(
-        self, processed_tokens: list[Token], process_request: ProcessRequest
+        self,
+        processed_tokens: list[Token],
+        analysis: SentimentAnalysis,
+        process_request: ProcessRequest,
     ) -> list[TokenModel]:
         """Store the `ProcessRequestTokes` in the DB
 
@@ -43,15 +50,44 @@ class ProcessorRepository:
             list[TokenModel]: The stored tokens
         """
         tokens: list[TokenModel] = []
-        process_request_tokens: list[ProcessRequestTokens] = []
-        for token in processed_tokens:
-            token = TokenModel(word=token.text, tag=token.tag)
-            await token.save()
-            tokens.append(token)
 
+        for token in processed_tokens:
+            try:
+                if TokenModel.exists(word=token.text, tag=token.tag):
+                    token_model = await TokenModel.get(word=token.text, tag=token.tag)
+            except DoesNotExist:
+                token_model = TokenModel(word=token.text, tag=token.tag)
+                await token_model.save()
+            finally:
+                tokens.append(token_model)  # type: ignore
+
+        sentiment_analysis = await SentimentAnalysisModel.create(
+            text=analysis.text,
+            mood=analysis.mood,
+            bias=analysis.bias,
+        )
+
+        assessments_to_save: list[Assessment] = []
+        for assessment in analysis.assessment:
+            assessment_to_save = await Assessment.create(
+                mood=assessment.mood, bias=assessment.bias
+            )
+            for assessment_token in assessment.tokens:
+                for token in tokens:
+                    if assessment_token == token.word:
+                        await assessment_to_save.tokens.add(token)
+                        await sentiment_analysis.assessments.add(assessment_to_save)
+                        break
+            assessments_to_save.append(assessment_to_save)
+
+        process_request_tokens: list[ProcessRequestTokens] = []
         for token in tokens:
             process_request_tokens.append(
-                ProcessRequestTokens(process_request=process_request, token=token)
+                ProcessRequestTokens(
+                    process_request=process_request,
+                    token=token,
+                    sentiment_analysis=sentiment_analysis,
+                )
             )
         await ProcessRequestTokens.bulk_create(process_request_tokens)
 
